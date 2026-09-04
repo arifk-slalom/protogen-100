@@ -25,18 +25,6 @@
 	<link rel="preconnect" href="https://images.unsplash.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,500;1,500;1,600&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="styles.css">
-	<style>
-		.weather-wrap { display: flex; justify-content: flex-end; padding-top: 20px; }
-		.weather-widget { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--warm); box-shadow: 0 16px 32px -20px rgba(0, 0, 0, .4); }
-		.weather-emoji { font-size: 30px; line-height: 1; }
-		.weather-temp { margin: 0; font: 500 22px var(--mono); letter-spacing: -.02em; }
-		.weather-desc { margin: 2px 0 0; color: var(--muted); font: 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
-		.weather-widget.is-error .weather-desc { color: var(--coral); }
-		@media (max-width: 700px) {
-			.weather-wrap { justify-content: center; padding-top: 16px; }
-			.weather-widget { padding: 12px 16px; }
-		}
-	</style>
 	<script>
 		document.documentElement.classList.add("js");
 		try {
@@ -196,71 +184,5 @@
 	}
 	</script>
 	<script src="app.js" defer></script>
-	<script>
-	(function () {
-		"use strict";
-
-		var widget = document.getElementById("weather-widget");
-		if (!widget) return;
-
-		var emojiEl = widget.querySelector(".weather-emoji");
-		var tempEl = widget.querySelector(".weather-temp");
-		var descEl = widget.querySelector(".weather-desc");
-
-		var CONDITIONS = {
-			0: ["☀️", "Clear sky"], 1: ["🌤️", "Mostly clear"], 2: ["⛅", "Partly cloudy"], 3: ["☁️", "Overcast"],
-			45: ["🌫️", "Fog"], 48: ["🌫️", "Fog"],
-			51: ["🌦️", "Drizzle"], 53: ["🌦️", "Drizzle"], 55: ["🌦️", "Drizzle"],
-			56: ["🌧️", "Freezing drizzle"], 57: ["🌧️", "Freezing drizzle"],
-			61: ["🌧️", "Rain"], 63: ["🌧️", "Rain"], 65: ["🌧️", "Heavy rain"],
-			66: ["🌧️", "Freezing rain"], 67: ["🌧️", "Freezing rain"],
-			71: ["🌨️", "Snow"], 73: ["🌨️", "Snow"], 75: ["❄️", "Heavy snow"], 77: ["❄️", "Snow grains"],
-			80: ["🌦️", "Rain showers"], 81: ["🌧️", "Rain showers"], 82: ["⛈️", "Violent showers"],
-			85: ["🌨️", "Snow showers"], 86: ["🌨️", "Snow showers"],
-			95: ["⛈️", "Thunderstorm"], 96: ["⛈️", "Thunderstorm"], 99: ["⛈️", "Thunderstorm"]
-		};
-
-		function setError(message) {
-			widget.classList.add("is-error");
-			emojiEl.textContent = "📍";
-			tempEl.textContent = "--°F";
-			descEl.textContent = message;
-		}
-
-		function cityFromTimezone(tz) {
-			if (!tz) return "";
-			var parts = tz.split("/");
-			return parts[parts.length - 1].replace(/_/g, " ");
-		}
-
-		if (!("geolocation" in navigator)) {
-			setError("Location unavailable");
-			return;
-		}
-
-		navigator.geolocation.getCurrentPosition(function (pos) {
-			var url = "https://api.open-meteo.com/v1/forecast?latitude=" + pos.coords.latitude +
-				"&longitude=" + pos.coords.longitude +
-				"&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=auto";
-
-			fetch(url)
-				.then(function (res) {
-					if (!res.ok) throw new Error("bad response");
-					return res.json();
-				})
-				.then(function (data) {
-					var current = data.current;
-					var condition = CONDITIONS[current.weather_code] || ["🌡️", "—"];
-					var city = cityFromTimezone(data.timezone);
-					emojiEl.textContent = condition[0];
-					tempEl.textContent = Math.round(current.temperature_2m) + "°F";
-					descEl.textContent = city ? condition[1] + " · " + city : condition[1];
-				})
-				.catch(function () { setError("Weather unavailable"); });
-		}, function (err) {
-			setError(err.code === err.PERMISSION_DENIED ? "Enable location to see your weather." : "Couldn't get your location.");
-		}, { timeout: 10000 });
-	})();
-	</script>
 </body>
 </html>

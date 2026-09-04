@@ -118,3 +118,68 @@
 	var year = document.querySelector("[data-year]");
 	if (year) year.textContent = new Date().getFullYear();
 })();
+
+(function () {
+	"use strict";
+
+	var widget = document.getElementById("weather-widget");
+	if (!widget) return;
+
+	var emojiEl = widget.querySelector(".weather-emoji");
+	var tempEl = widget.querySelector(".weather-temp");
+	var descEl = widget.querySelector(".weather-desc");
+
+	var CONDITIONS = {
+		0: ["☀️", "Clear sky"], 1: ["🌤️", "Mostly clear"], 2: ["⛅", "Partly cloudy"], 3: ["☁️", "Overcast"],
+		45: ["🌫️", "Fog"], 48: ["🌫️", "Fog"],
+		51: ["🌦️", "Drizzle"], 53: ["🌦️", "Drizzle"], 55: ["🌦️", "Drizzle"],
+		56: ["🌧️", "Freezing drizzle"], 57: ["🌧️", "Freezing drizzle"],
+		61: ["🌧️", "Rain"], 63: ["🌧️", "Rain"], 65: ["🌧️", "Heavy rain"],
+		66: ["🌧️", "Freezing rain"], 67: ["🌧️", "Freezing rain"],
+		71: ["🌨️", "Snow"], 73: ["🌨️", "Snow"], 75: ["❄️", "Heavy snow"], 77: ["❄️", "Snow grains"],
+		80: ["🌦️", "Rain showers"], 81: ["🌧️", "Rain showers"], 82: ["⛈️", "Violent showers"],
+		85: ["🌨️", "Snow showers"], 86: ["🌨️", "Snow showers"],
+		95: ["⛈️", "Thunderstorm"], 96: ["⛈️", "Thunderstorm"], 99: ["⛈️", "Thunderstorm"]
+	};
+
+	function setError(message) {
+		widget.classList.add("is-error");
+		emojiEl.textContent = "📍";
+		tempEl.textContent = "--°F";
+		descEl.textContent = message;
+	}
+
+	function cityFromTimezone(tz) {
+		if (!tz) return "";
+		var parts = tz.split("/");
+		return parts[parts.length - 1].replace(/_/g, " ");
+	}
+
+	if (!("geolocation" in navigator)) {
+		setError("Location unavailable");
+		return;
+	}
+
+	navigator.geolocation.getCurrentPosition(function (pos) {
+		var url = "https://api.open-meteo.com/v1/forecast?latitude=" + pos.coords.latitude +
+			"&longitude=" + pos.coords.longitude +
+			"&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=auto";
+
+		fetch(url)
+			.then(function (res) {
+				if (!res.ok) throw new Error("bad response");
+				return res.json();
+			})
+			.then(function (data) {
+				var current = data.current;
+				var condition = CONDITIONS[current.weather_code] || ["🌡️", "—"];
+				var city = cityFromTimezone(data.timezone);
+				emojiEl.textContent = condition[0];
+				tempEl.textContent = Math.round(current.temperature_2m) + "°F";
+				descEl.textContent = city ? condition[1] + " · " + city : condition[1];
+			})
+			.catch(function () { setError("Weather unavailable"); });
+	}, function (err) {
+		setError(err.code === err.PERMISSION_DENIED ? "Enable location to see your weather." : "Couldn't get your location.");
+	}, { timeout: 10000 });
+})();
