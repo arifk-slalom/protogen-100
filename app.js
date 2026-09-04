@@ -109,8 +109,8 @@
 		}, { passive: true });
 
 		document.querySelectorAll(".project").forEach(function (project) {
-			project.addEventListener("mouseenter", function () { cursor.classList.add("is-active"); });
-			project.addEventListener("mouseleave", function () { cursor.classList.remove("is-active"); });
+			project.addEventListener("mouseenter", function () { cursor.classList.add("is-active"); draw(); });
+			project.addEventListener("mouseleave", function () { cursor.classList.remove("is-active"); draw(); });
 		});
 	}
 
